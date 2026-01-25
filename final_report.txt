@@ -1,0 +1,152 @@
+
+======================================================================
+         PROMPTED SEGMENTATION FOR DRYWALL QA - FINAL REPORT
+======================================================================
+
+Generated: 2026-01-25 13:52:40
+
+======================================================================
+1. PROJECT OVERVIEW
+======================================================================
+
+Objective: Build a text-conditioned segmentation model for drywall quality 
+           assurance that can process images and natural language prompts 
+           (e.g., "segment crack", "segment taping area") to produce binary 
+           masks highlighting requested regions.
+
+Model Architecture: CLIPSeg (CLIP-based Segmentation)
+Base Model: CIDAS/clipseg-rd64-refined
+Parameters: 150,747,746
+
+======================================================================
+2. DATASETS
+======================================================================
+
+Dataset 1: Drywall Joint Detection
+  - Source: Roboflow (objectdetect-pu6rn/drywall-join-detect)
+  - Training Images: 936
+  - Validation Images: 250
+  - Classes: drywall_joint
+  - Original Annotation: Bounding Boxes (converted to masks)
+
+Dataset 2: Cracks Detection  
+  - Source: Roboflow (fyp-ny1jt/cracks-3ii36)
+  - Training Images: 2,747
+  - Validation Images: 80
+  - Test Images: 4
+  - Classes: crack
+  - Original Annotation: Polygon Segmentation
+
+Combined Dataset:
+  - Total Training: 3,683 images
+  - Total Validation: 330 images
+
+======================================================================
+3. TRAINING CONFIGURATION
+======================================================================
+
+Hardware: NVIDIA Tesla T4 (15.83 GB VRAM)
+Framework: PyTorch 2.9.0+cu126
+Optimizer: AdamW
+Learning Rate: 1e-5
+Weight Decay: 0.01
+Batch Size: 8
+Epochs: 5
+Loss Function: Binary Cross-Entropy with Logits
+
+Training Prompts (Drywall):
+  - "drywall joint"
+  - "taping area"
+  - "wall seam"
+  - "joint compound area"
+  - "drywall seam"
+
+Training Prompts (Cracks):
+  - "crack"
+  - "wall crack"
+  - "damaged area"
+  - "fracture"
+  - "crack in surface"
+
+======================================================================
+4. TRAINING RESULTS
+======================================================================
+
+Epoch  |  Train Loss  |  Valid Loss
+-------|--------------|-------------
+  1    |    0.2884    |    0.3244
+  2    |    0.2066    |    0.3039
+  3    |    0.1859    |    0.2917
+  4    |    0.1766    |    0.2852
+  5    |    0.1694    |    0.2741
+
+Best Validation Loss: 0.2741 (Epoch 5)
+Training Time: ~17.5 minutes total
+
+======================================================================
+5. EVALUATION METRICS
+======================================================================
+
+DRYWALL DATASET:
+  - IoU Score:  0.1234 ± 0.1580
+  - Dice Score: 0.1888 ± 0.2207
+
+CRACKS DATASET:
+  - IoU Score:  0.4277 ± 0.1809
+  - Dice Score: 0.5744 ± 0.1976
+
+OVERALL (COMBINED):
+  - IoU Score:  0.1971 ± 0.2094
+  - Dice Score: 0.2823 ± 0.2714
+  - Pixel Accuracy: 0.9021
+
+======================================================================
+6. KEY FINDINGS
+======================================================================
+
+1. The cracks dataset achieved higher IoU (0.43) due to precise polygon 
+   annotations, while drywall dataset had lower IoU (0.12) because 
+   bounding box annotations were converted to rectangular masks.
+
+2. Pixel accuracy of 90.21% indicates the model correctly classifies 
+   most pixels, though IoU is lower due to class imbalance (small 
+   defect regions vs large background).
+
+3. The model successfully responds to different text prompts, 
+   demonstrating true text-conditioned segmentation capability.
+
+4. Training loss decreased consistently from 0.29 to 0.17, showing 
+   good model convergence without overfitting.
+
+======================================================================
+7. FILES GENERATED
+======================================================================
+
+Model Files:
+  - best_model.pth (Best validation checkpoint)
+  - final_model.pth (Final epoch checkpoint)
+
+Evaluation Files:
+  - evaluation_metrics.json
+  - training_curves.png
+  - predictions_drywall.png
+  - predictions_cracks.png
+  - demo_drywall.png
+  - demo_cracks.png
+
+Prediction Outputs:
+  - predictions/cracks/ (masks and overlays)
+  - predictions/drywall/ (masks and overlays)
+
+======================================================================
+8. FUTURE IMPROVEMENTS
+======================================================================
+
+1. Use polygon annotations for drywall dataset for better mask quality
+2. Increase training epochs and implement learning rate scheduling
+3. Data augmentation (rotation, flipping, color jitter)
+4. Try larger CLIPSeg variants or SAM (Segment Anything Model)
+5. Add more diverse text prompts during training
+6. Implement post-processing (CRF, morphological operations)
+
+======================================================================

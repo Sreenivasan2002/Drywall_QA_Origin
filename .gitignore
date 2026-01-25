@@ -1,0 +1,16 @@
+# Environment variables (contains API key)
+.env
+
+# Model weights (too large for GitHub - 600MB+)
+*.pth
+*.pt
+
+# Python cache
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
